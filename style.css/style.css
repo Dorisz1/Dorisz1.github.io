@@ -1,0 +1,92 @@
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    height: 3em;
+    width: 100%;
+    background-color: #333333;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: x-small;
+    overflow: hidden;
+  }
+
+  body{
+    margin-left:0px;
+  }
+  
+  .nav {
+    display: inline;
+    float: right; 
+  }
+
+  a {
+    padding: 10px;  
+    display:flex;
+    color: #ff0099;
+    margin-right:20px;
+  }
+
+li a:hover {
+    background-color:grey;
+    border-radius: 3px;
+  }
+
+#logo{
+    margin-left:48px;
+}
+
+body{
+    background-image: url("../assets/topography.png");
+}
+
+h1, p{
+    text-align: left;
+    padding-left: 30px;
+    font-family: 'Courier New', Courier, monospace;
+    color:  #333333;
+    }
+
+h1{
+    padding-top: 60px;
+}
+
+p{
+  font-size: x-small;
+}
+img{
+  height: 150px;
+  width: auto;
+  padding:90px 30px;
+  }
+
+.main {
+   display: flex;
+  justify-content: center;
+   margin: 50px;
+   height: auto ;
+   width: auto;
+   background-color: rgb(184,184,184, 0.3);
+   border-radius: 5%;
+  }
+
+  ol li {
+    counter-increment: list;
+    list-style-type: none;
+    position: relative;
+    color:  #333333;
+    margin: 15px 90px 15px 48px;
+    font-size: x-small;
+    text-align: justify;
+  }
+
+  ol li:before {
+    color:#ff0099;;
+    content: counter(list) ".";
+    left: -32px;
+    position: absolute;
+    text-align: right;
+    width: 26px;
+  }
