@@ -1,7 +1,7 @@
 ul {
     list-style-type: none;
     margin: 0;
-    padding: 10px;
+    padding: 20px;
     position: fixed;
     top: 0;
     height: 3em;
@@ -9,7 +9,7 @@ ul {
     background-color: #333333;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
-    font-size: x-small;
+    font-size: large;
     overflow: hidden;
   }
 
@@ -23,7 +23,7 @@ ul {
   }
 
   a {
-    padding: 10px;  
+    padding: 20px;  
     display:flex;
     color: #ff0099;
     margin-right:20px;
@@ -31,12 +31,13 @@ ul {
 
 li a:hover {
     background-color:grey;
-    border-radius: 3px;
+    border-radius: 12px;
   }
 
 #logo{
-    margin-left:48px;
-}
+    margin-left:96px;
+    margin-top:10px;
+  }
 
 body{
     background-image: url("../assets/topography.png");
@@ -44,28 +45,31 @@ body{
 
 h1, p{
     text-align: left;
-    padding-left: 30px;
-    font-family: 'Courier New', Courier, monospace;
+    padding-left: 60px;
+    font-family: 'Merriweather', serif;
     color:  #333333;
     }
 
 h1{
-    padding-top: 60px;
+    padding-top: 120px;
 }
 
 p{
-  font-size: x-small;
+  font-size: large;
+  text-align: justify;
 }
+
 img{
-  height: 150px;
+  height: 200px;
   width: auto;
-  padding:90px 30px;
+  padding:180px 60px;
   }
 
 .main {
    display: flex;
   justify-content: center;
-   margin: 50px;
+   margin: 200px;
+   margin-bottom:100px;
    height: auto ;
    width: auto;
    background-color: rgb(184,184,184, 0.3);
@@ -77,9 +81,10 @@ img{
     list-style-type: none;
     position: relative;
     color:  #333333;
-    margin: 15px 90px 15px 48px;
-    font-size: x-small;
+    margin: 30px 180px 30px 96px;
+    font-size: medium;
     text-align: justify;
+    font-family: 'Merriweather', serif;
   }
 
   ol li:before {
