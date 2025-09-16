@@ -53,19 +53,23 @@ let carMarker = null;
 // --- Destination ---
 const destination = L.latLng(47.5007,19.0336);
 
-// --- Routing Machine (street-following route) ---
+// --- Routing Machine ---
 let routingControl = L.Routing.control({
     waypoints: [destination], // placeholder
     router: L.Routing.osrmv1({serviceUrl: 'https://router.project-osrm.org/route/v1'}),
     lineOptions: {styles: [{color:'#FFA500', weight:5}]},
     addWaypoints: false,
     draggableWaypoints: false,
-    fitSelectedRoutes: true,
+    fitSelectedRoutes: false, // disable auto-fit to prevent jumps
     createMarker: ()=>null
 }).addTo(map);
 
+let lastRouteLatLng = null;
 function updateRoute(latlng){
-    routingControl.setWaypoints([latlng, destination]);
+    if(!lastRouteLatLng || latlng.distanceTo(lastRouteLatLng) > 5){ // update if moved >5m
+        routingControl.setWaypoints([latlng, destination]);
+        lastRouteLatLng = latlng;
+    }
 }
 
 // --- Audio URLs ---
@@ -110,6 +114,7 @@ function updateCar(latlng){
     } else carMarker.setLatLng(latlng);
 
     updateRoute(latlng);
+    map.setView(latlng,16);
 
     // --- Turn detection ---
     const bearing = getBearing(latlng.lat,latlng.lng,destination.lat,destination.lng);
@@ -139,7 +144,6 @@ document.getElementById('startBtn').onclick = function(){
         navigator.geolocation.watchPosition(pos=>{
             const latlng = L.latLng(pos.coords.latitude,pos.coords.longitude);
             updateCar(latlng);
-            map.setView(latlng,16);
         }, err=>alert("GPS error: "+err.message), {enableHighAccuracy:true});
     } else alert("Geolocation not supported");
 };
