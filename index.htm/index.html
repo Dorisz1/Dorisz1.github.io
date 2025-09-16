@@ -61,7 +61,7 @@ function updateRoute(latlng){
     } else {
         routingControl = L.Routing.control({
             waypoints:[latlng,destination],
-            lineOptions:{styles:[{color:'red',weight:5}]},
+            lineOptions:{styles:[{color:'#FFA500',weight:5}]},
             addWaypoints:false,
             draggableWaypoints:false,
             fitSelectedRoutes:true,
@@ -70,12 +70,12 @@ function updateRoute(latlng){
     }
 }
 
-// --- Audio ---
-const audioStart = 'assets/start.mp3';
-const audioTurnLeft = 'assets/turnleft.mp3';
-const audioTurnRight = 'assets/turnright.mp3';
-const audioArrival = 'assets/arrival.mp3';
-const birthdaySong = 'assets/birthdaysong.mp3';
+// --- Audio URLs ---
+const audioStart = 'https://dorisz1.github.io/Dorisz1.github.io/assets/start.mp3';
+const audioTurnLeft = 'https://dorisz1.github.io/Dorisz1.github.io/assets/turnleft.mp3';
+const audioTurnRight = 'https://dorisz1.github.io/Dorisz1.github.io/assets/turnright.mp3';
+const audioArrival = 'https://dorisz1.github.io/Dorisz1.github.io/assets/arrival.mp3';
+const birthdaySong = 'https://dorisz1.github.io/Dorisz1.github.io/assets/birthdaysong.mp3';
 
 function playAudio(url){ const audio=new Audio(url); audio.play(); }
 
