@@ -12,13 +12,8 @@ html,body,#map {height:100%;margin:0;padding:0;}
 z-index:1000;background:rgba(255,255,255,0.95);padding:10px 14px;
 border-radius:12px;font-family:sans-serif;width:90%;max-width:220px;text-align:center;}
 .btn{flex:1;padding:12px 0;border-radius:8px;border:1px solid #ccc;background:#f7f7f7;font-size:16px;}
-#celebration{position:fixed;inset:0;background:rgba(0,0,0,0.85);
-display:none;justify-content:center;align-items:center;flex-direction:column;
-z-index:2000;color:#fff;text-align:center;}
-#celebration h1{font-size:2.2rem;margin:0;color:#ffeb3b;text-shadow:0 0 10px #ff4081;font-family:"Comic Sans MS",cursive,sans-serif;}
 #giftIcon{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
 font-size:4rem;cursor:pointer;display:none;z-index:3000;}
-canvas#confettiCanvas{position:fixed;inset:0;z-index:2100;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -26,11 +21,7 @@ canvas#confettiCanvas{position:fixed;inset:0;z-index:2100;pointer-events:none;}
 <div id="controls">
   <button id="startBtn" class="btn">Start</button>
 </div>
-<div id="celebration">
-  <h1>🎉 HAPPY BIRTHDAY CHRISTIAN! 🎉</h1>
-</div>
 <div id="giftIcon">🎁</div>
-<canvas id="confettiCanvas"></canvas>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
@@ -42,9 +33,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).a
 
 // --- Car Marker with PNG ---
 const carIcon = L.icon({
-    iconUrl: 'https://Dorisz1.github.io/assets/car.png', // PNG car
-    iconSize: [48, 48],   // adjust as needed
-    iconAnchor: [24, 24]  // center
+    iconUrl: 'https://Dorisz1.github.io/assets/car.png',
+    iconSize: [48, 48],
+    iconAnchor: [24, 24]
 });
 let carMarker = null;
 
@@ -66,7 +57,6 @@ let routingControl = L.Routing.control({
 }).addTo(map);
 
 let lastRouteLatLng = fallbackStart;
-
 function updateRoute(latlng){
     if(!lastRouteLatLng || latlng.distanceTo(lastRouteLatLng) > 5){
         routingControl.setWaypoints([latlng, destination]);
@@ -80,21 +70,7 @@ const audioTurnLeft = 'https://Dorisz1.github.io/assets/turnleft.mp3';
 const audioTurnRight = 'https://Dorisz1.github.io/assets/turnright.mp3';
 const audioArrival = 'https://Dorisz1.github.io/assets/arrival.mp3';
 const birthdaySong = 'https://Dorisz1.github.io/assets/birthdaysong.mp3';
-
 function playAudio(url){ const audio=new Audio(url); audio.play(); }
-
-// --- Confetti ---
-const canvas = document.getElementById('confettiCanvas'); 
-const ctx = canvas.getContext('2d'); 
-let confetti=[], confettiActive=false;
-function resize(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
-window.addEventListener('resize',resize); resize();
-function createConfetti(){confetti=Array.from({length:150},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,r:Math.random()*6+4,d:Math.random()*10+10,color:`hsl(${Math.random()*360},100%,60%)`,tilt:Math.random()*10-10}));}
-function drawConfetti(){ctx.clearRect(0,0,canvas.width,canvas.height); confetti.forEach(c=>{ctx.beginPath();ctx.fillStyle=c.color;ctx.ellipse(c.x,c.y,c.r,c.r/2,Math.random()*Math.PI,0,2*Math.PI);ctx.fill();updateConfetti();});}
-function updateConfetti(){confetti.forEach(c=>{c.y+=c.d/6;c.x+=Math.sin(c.y/50)*2;if(c.y>canvas.height)c.y=-10;});}
-function animateConfetti(){if(confettiActive){drawConfetti();requestAnimationFrame(animateConfetti);} }
-function startConfetti(){confettiActive=true;createConfetti();animateConfetti();}
-function stopConfetti(){confettiActive=false;ctx.clearRect(0,0,canvas.width,canvas.height);}
 
 // --- GPS & Turn Detection ---
 let arrived = false;
@@ -133,9 +109,7 @@ function updateCar(latlng){
     if(!arrived && latlng.distanceTo(destination)<10){
         arrived = true;
         playAudio(audioArrival);
-        document.getElementById('celebration').style.display='flex';
         document.getElementById('giftIcon').style.display='block';
-        startConfetti();
     }
 }
 
