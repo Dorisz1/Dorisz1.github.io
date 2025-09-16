@@ -5,6 +5,7 @@
 <title>Birthday GPS for Christian</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 <style>
 html,body,#map {height:100%;margin:0;padding:0;}
 #controls{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
@@ -15,6 +16,8 @@ border-radius:12px;font-family:sans-serif;width:90%;max-width:220px;text-align:c
 display:none;justify-content:center;align-items:center;flex-direction:column;
 z-index:2000;color:#fff;text-align:center;}
 #celebration h1{font-size:2.2rem;margin:0;color:#ffeb3b;text-shadow:0 0 10px #ff4081;font-family:"Comic Sans MS",cursive,sans-serif;}
+#giftIcon{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+font-size:4rem;cursor:pointer;display:none;z-index:3000;}
 canvas#confettiCanvas{position:fixed;inset:0;z-index:2100;pointer-events:none;}
 </style>
 </head>
@@ -26,9 +29,11 @@ canvas#confettiCanvas{position:fixed;inset:0;z-index:2100;pointer-events:none;}
 <div id="celebration">
   <h1>🎉 HAPPY BIRTHDAY CHRISTIAN! 🎉</h1>
 </div>
+<div id="giftIcon">🎁</div>
 <canvas id="confettiCanvas"></canvas>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 
 <script>
 // --- Map Setup ---
@@ -48,20 +53,36 @@ let carMarker = null;
 // --- Destination ---
 const destination = L.latLng(47.5007,19.0336);
 
-// --- Route line ---
-let routeLine = L.polyline([destination], {color:'red'}).addTo(map);
+// --- Routing ---
+let routingControl = null;
+function updateRoute(latlng){
+    if(routingControl){
+        routingControl.setWaypoints([latlng,destination]);
+    } else {
+        routingControl = L.Routing.control({
+            waypoints:[latlng,destination],
+            lineOptions:{styles:[{color:'red',weight:5}]},
+            addWaypoints:false,
+            draggableWaypoints:false,
+            fitSelectedRoutes:true,
+            createMarker:()=>null
+        }).addTo(map);
+    }
+}
 
-// --- Michael Scott Voice URLs ---
-const audioStart = 'YOUR_START_AUDIO_URL.mp3';
-const audioTurnLeft = 'YOUR_TURN_LEFT_AUDIO_URL.mp3';
-const audioTurnRight = 'YOUR_TURN_RIGHT_AUDIO_URL.mp3';
-const audioArrival = 'YOUR_ARRIVAL_AUDIO_URL.mp3';
+// --- Audio ---
+const audioStart = 'assets/start.mp3';
+const audioTurnLeft = 'assets/turnleft.mp3';
+const audioTurnRight = 'assets/turnright.mp3';
+const audioArrival = 'assets/arrival.mp3';
+const birthdaySong = 'assets/birthdaysong.mp3';
 
-// --- Play audio ---
 function playAudio(url){ const audio=new Audio(url); audio.play(); }
 
 // --- Confetti ---
-const canvas = document.getElementById('confettiCanvas'); const ctx = canvas.getContext('2d'); let confetti=[], confettiActive=false;
+const canvas = document.getElementById('confettiCanvas'); 
+const ctx = canvas.getContext('2d'); 
+let confetti=[], confettiActive=false;
 function resize(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
 window.addEventListener('resize',resize); resize();
 function createConfetti(){confetti=Array.from({length:150},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,r:Math.random()*6+4,d:Math.random()*10+10,color:`hsl(${Math.random()*360},100%,60%)`,tilt:Math.random()*10-10}));}
@@ -71,7 +92,7 @@ function animateConfetti(){if(confettiActive){drawConfetti();requestAnimationFra
 function startConfetti(){confettiActive=true;createConfetti();animateConfetti();}
 function stopConfetti(){confettiActive=false;ctx.clearRect(0,0,canvas.width,canvas.height);}
 
-// --- GPS & Navigation ---
+// --- GPS & Turn Detection ---
 let arrived = false;
 let lastBearing = null;
 
@@ -85,41 +106,49 @@ function getBearing(lat1, lon1, lat2, lon2){
 }
 
 function updateCar(latlng){
-  if(!carMarker){ carMarker=L.marker(latlng,{icon:carIcon}).addTo(map); map.setView(latlng,16); }
-  else carMarker.setLatLng(latlng);
+    if(!carMarker){ 
+        carMarker=L.marker(latlng,{icon:carIcon}).addTo(map); 
+        map.setView(latlng,16); 
+    } else carMarker.setLatLng(latlng);
 
-  routeLine.setLatLngs([latlng,destination]);
+    updateRoute(latlng);
 
-  // --- Turn detection ---
-  const bearing = getBearing(latlng.lat, latlng.lng, destination.lat, destination.lng);
-  if(lastBearing!==null){
-    let diff = bearing - lastBearing;
-    if(diff > 180) diff -= 360;
-    if(diff < -180) diff += 360;
-    if(diff > 30) playAudio(audioTurnRight);
-    if(diff < -30) playAudio(audioTurnLeft);
-  }
-  lastBearing = bearing;
+    // --- Turn detection ---
+    const bearing = getBearing(latlng.lat,latlng.lng,destination.lat,destination.lng);
+    if(lastBearing!==null){
+        let diff = bearing - lastBearing;
+        if(diff>180) diff-=360;
+        if(diff<-180) diff+=360;
+        if(diff>30) playAudio(audioTurnRight);
+        if(diff<-30) playAudio(audioTurnLeft);
+    }
+    lastBearing = bearing;
 
-  // --- Arrival detection ---
-  if(!arrived && latlng.distanceTo(destination)<10){
-    arrived = true;
-    playAudio(audioArrival);
-    document.getElementById('celebration').style.display='flex';
-    startConfetti();
-  }
+    // --- Arrival ---
+    if(!arrived && latlng.distanceTo(destination)<10){
+        arrived = true;
+        playAudio(audioArrival);
+        document.getElementById('celebration').style.display='flex';
+        document.getElementById('giftIcon').style.display='block';
+        startConfetti();
+    }
 }
 
 // --- Start Button ---
 document.getElementById('startBtn').onclick = function(){
-  playAudio(audioStart);
-  if(navigator.geolocation){
-    navigator.geolocation.watchPosition(pos=>{
-      const latlng = L.latLng(pos.coords.latitude,pos.coords.longitude);
-      updateCar(latlng);
-      map.setView(latlng,16);
-    }, err=>alert("GPS error: "+err.message), {enableHighAccuracy:true});
-  } else alert("Geolocation not supported");
+    playAudio(audioStart);
+    if(navigator.geolocation){
+        navigator.geolocation.watchPosition(pos=>{
+            const latlng = L.latLng(pos.coords.latitude,pos.coords.longitude);
+            updateCar(latlng);
+            map.setView(latlng,16);
+        }, err=>alert("GPS error: "+err.message), {enableHighAccuracy:true});
+    } else alert("Geolocation not supported");
+};
+
+// --- Gift Icon Click ---
+document.getElementById('giftIcon').onclick = function(){
+    playAudio(birthdaySong);
 };
 </script>
 </body>
