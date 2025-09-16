@@ -6,13 +6,50 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-html,body,#map {height:100%;margin:0;padding:0;}
-#controls{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
-z-index:1000;background:rgba(255,255,255,0.95);padding:10px 14px;
-border-radius:12px;font-family:sans-serif;width:90%;max-width:220px;text-align:center;}
-.btn{flex:1;padding:12px 0;border-radius:8px;border:1px solid #ccc;background:#f7f7f7;font-size:16px;}
-#giftIcon{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-font-size:4rem;cursor:pointer;display:none;z-index:3000;}
+html,body,#map {
+  height:100%;
+  margin:0;
+  padding:0;
+}
+#controls{
+  position:fixed;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1000;
+  background:rgba(255,255,255,0.95);
+  padding:10px 14px;
+  border-radius:12px;
+  font-family:sans-serif;
+  width:90%;
+  max-width:220px;
+  text-align:center;
+}
+.btn{
+  flex:1;
+  padding:12px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+  background:#f7f7f7;
+  font-size:16px;
+}
+
+#giftIcon {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 4rem;
+  cursor: pointer;
+  display: none;
+  z-index: 3000;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -60%) scale(1.2); }
+}
 </style>
 </head>
 <body>
@@ -26,19 +63,28 @@ font-size:4rem;cursor:pointer;display:none;z-index:3000;}
 
 <script>
 // --- Map Setup ---
-const map = L.map('map',{zoomControl:false}).setView([47.5,19],16);
+const map = L.map('map',{zoomControl:false}).setView([47.5,19],14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
 // --- Car Marker ---
 const carIcon = L.icon({
     iconUrl: 'https://Dorisz1.github.io/assets/car.png',
-    iconSize: [64,64],     
-    iconAnchor: [32,32]    
+    iconSize: [64, 64],
+    iconAnchor: [32, 32]
 });
 let carMarker = null;
 
 // --- Destination ---
-const destination = L.latLng(47.5007,19.0336);
+const destination = L.latLng(47.5089, 19.0261);
+
+// --- Destination Marker ---
+const destinationIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/11529/11529542.png',
+    iconSize: [48,48],
+    iconAnchor: [24,48],
+    popupAnchor: [0,-48]
+});
+L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Destination");
 
 // --- Audio ---
 const audioStart = 'https://Dorisz1.github.io/assets/start.mp3';
@@ -46,10 +92,16 @@ const audioTurnLeft = 'https://Dorisz1.github.io/assets/turnleft.mp3';
 const audioTurnRight = 'https://Dorisz1.github.io/assets/turnright.mp3';
 const audioArrival = 'https://Dorisz1.github.io/assets/arrival.mp3';
 const birthdaySong = 'https://Dorisz1.github.io/assets/birthdaysong.mp3';
-function playAudio(url){ new Audio(url).play(); }
 
-// --- Turn detection (simplified) ---
+function playAudio(url){
+    const audio = new Audio(url);
+    audio.play();
+}
+
+// --- Bearing & Turn Detection ---
+let arrived = false;
 let lastBearing = null;
+
 function getBearing(lat1, lon1, lat2, lon2){
   const dLon = (lon2-lon1)*Math.PI/180;
   const y = Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
@@ -59,8 +111,7 @@ function getBearing(lat1, lon1, lat2, lon2){
   return (brng+360)%360;
 }
 
-// --- Update car ---
-let arrived = false;
+// --- Update Car ---
 function updateCar(latlng){
     if(!carMarker){
         carMarker = L.marker(latlng,{icon:carIcon}).addTo(map);
@@ -82,10 +133,15 @@ function updateCar(latlng){
     }
     lastBearing = bearing;
 
-    // Arrival
-    if(!arrived && latlng.distanceTo(destination)<10){
+    // Arrival logic
+    const distance = latlng.distanceTo(destination);
+
+    if(!arrived && distance < 20){
         arrived = true;
         playAudio(audioArrival);
+    }
+
+    if(distance < 10){
         document.getElementById('giftIcon').style.display='block';
     }
 }
@@ -101,7 +157,7 @@ document.getElementById('startBtn').onclick = function(){
     } else alert("Geolocation not supported");
 };
 
-// --- Gift Icon ---
+// --- Gift Icon Click ---
 document.getElementById('giftIcon').onclick = function(){
     playAudio(birthdaySong);
 };
