@@ -30,6 +30,8 @@ canvas#confettiCanvas{position:fixed;inset:0;z-index:2100;pointer-events:none;}
 <audio id="birthdayMusic" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1c6e2cf96d.mp3?filename=happy-birthday-to-you-instrumental-12533.mp3" preload="auto"></audio>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
 <script>
 // Leaflet default marker fix
 L.Icon.Default.mergeOptions({
@@ -52,7 +54,7 @@ const carIcon=L.divIcon({
 });
 let carMarker=null;
 
-// Destination: updated coordinates
+// Destination
 const destination=L.latLng(47.5007,19.0336);
 
 // Voice
@@ -62,6 +64,9 @@ function speak(text){
   speechSynthesis.speak(u);
 }
 
+// Route polyline
+let routeLine=L.polyline([destination],[{color:'red'}]).addTo(map);
+
 // GPS tracking
 let arrived=false;
 function updateCar(latlng){
@@ -70,8 +75,11 @@ function updateCar(latlng){
     map.setView(latlng,16);
   } else {
     carMarker.setLatLng(latlng);
-    map.setView(latlng);
   }
+
+  // Update route
+  routeLine.setLatLngs([latlng,destination]);
+
   // Check arrival within 10 meters
   if(!arrived && latlng.distanceTo(destination)<10){
     arrived=true;
@@ -89,6 +97,7 @@ document.getElementById('startBtn').onclick=function(){
     navigator.geolocation.watchPosition(pos=>{
       const latlng=L.latLng(pos.coords.latitude,pos.coords.longitude);
       updateCar(latlng);
+      map.setView(latlng,16);
     },err=>alert("GPS error: "+err.message),{enableHighAccuracy:true});
   } else alert("Geolocation not supported");
 };
