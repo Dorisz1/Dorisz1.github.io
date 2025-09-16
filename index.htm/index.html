@@ -27,83 +27,41 @@ canvas#confettiCanvas{position:fixed;inset:0;z-index:2100;pointer-events:none;}
   <h1>🎉 HAPPY BIRTHDAY CHRISTIAN! 🎉</h1>
 </div>
 <canvas id="confettiCanvas"></canvas>
-<audio id="birthdayMusic" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1c6e2cf96d.mp3?filename=happy-birthday-to-you-instrumental-12533.mp3" preload="auto"></audio>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 
 <script>
-// Leaflet default marker fix
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
-});
-
-// Map setup
-const map=L.map('map',{zoomControl:false}).setView([47.5,19],14);
+// --- Map Setup ---
+const map = L.map('map',{zoomControl:false}).setView([47.5,19],14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
-// Car icon
-const carIcon=L.divIcon({
+// --- Car Marker ---
+const carIcon = L.divIcon({
   iconSize:[36,36], iconAnchor:[18,18],
   html:`<div id="car"><svg width="36" height="36" viewBox="0 0 512 512">
   <path d="M256 48c-71 0-124 48-140 112l-20 64c-8 24 8 48 32 48h256c24 0 40-24 32-48l-20-64c-16-64-69-112-140-112z" fill="#1976d2" stroke="#083c7b" stroke-width="12"/>
   <circle cx="156" cy="304" r="28" fill="#222"/><circle cx="356" cy="304" r="28" fill="#222"/>
   </svg></div>`
 });
-let carMarker=null;
+let carMarker = null;
 
-// Destination
-const destination=L.latLng(47.5007,19.0336);
+// --- Destination ---
+const destination = L.latLng(47.5007,19.0336);
 
-// Voice
-function speak(text){
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-US'; u.rate=1; u.pitch=1;
-  speechSynthesis.speak(u);
-}
+// --- Route line ---
+let routeLine = L.polyline([destination], {color:'red'}).addTo(map);
 
-// Route polyline
-let routeLine=L.polyline([destination],[{color:'red'}]).addTo(map);
+// --- Michael Scott Voice URLs ---
+const audioStart = 'YOUR_START_AUDIO_URL.mp3';
+const audioTurnLeft = 'YOUR_TURN_LEFT_AUDIO_URL.mp3';
+const audioTurnRight = 'YOUR_TURN_RIGHT_AUDIO_URL.mp3';
+const audioArrival = 'YOUR_ARRIVAL_AUDIO_URL.mp3';
 
-// GPS tracking
-let arrived=false;
-function updateCar(latlng){
-  if(!carMarker){
-    carMarker=L.marker(latlng,{icon:carIcon}).addTo(map);
-    map.setView(latlng,16);
-  } else {
-    carMarker.setLatLng(latlng);
-  }
-
-  // Update route
-  routeLine.setLatLngs([latlng,destination]);
-
-  // Check arrival within 10 meters
-  if(!arrived && latlng.distanceTo(destination)<10){
-    arrived=true;
-    speak("You made it! Happy Birthday Christian!");
-    document.getElementById('celebration').style.display='flex';
-    document.getElementById('birthdayMusic').play();
-    startConfetti();
-  }
-}
-
-// Start button
-document.getElementById('startBtn').onclick=function(){
-  speak("Let's go Christian! Your birthday adventure begins!");
-  if(navigator.geolocation){
-    navigator.geolocation.watchPosition(pos=>{
-      const latlng=L.latLng(pos.coords.latitude,pos.coords.longitude);
-      updateCar(latlng);
-      map.setView(latlng,16);
-    },err=>alert("GPS error: "+err.message),{enableHighAccuracy:true});
-  } else alert("Geolocation not supported");
-};
+// --- Play audio ---
+function playAudio(url){ const audio=new Audio(url); audio.play(); }
 
 // --- Confetti ---
-const canvas=document.getElementById('confettiCanvas'); const ctx=canvas.getContext('2d'); let confetti=[],confettiActive=false;
+const canvas = document.getElementById('confettiCanvas'); const ctx = canvas.getContext('2d'); let confetti=[], confettiActive=false;
 function resize(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
 window.addEventListener('resize',resize); resize();
 function createConfetti(){confetti=Array.from({length:150},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,r:Math.random()*6+4,d:Math.random()*10+10,color:`hsl(${Math.random()*360},100%,60%)`,tilt:Math.random()*10-10}));}
@@ -112,6 +70,57 @@ function updateConfetti(){confetti.forEach(c=>{c.y+=c.d/6;c.x+=Math.sin(c.y/50)*
 function animateConfetti(){if(confettiActive){drawConfetti();requestAnimationFrame(animateConfetti);}}
 function startConfetti(){confettiActive=true;createConfetti();animateConfetti();}
 function stopConfetti(){confettiActive=false;ctx.clearRect(0,0,canvas.width,canvas.height);}
+
+// --- GPS & Navigation ---
+let arrived = false;
+let lastBearing = null;
+
+function getBearing(lat1, lon1, lat2, lon2){
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const y = Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
+  const x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180) -
+            Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLon);
+  const brng = Math.atan2(y,x)*180/Math.PI;
+  return (brng+360)%360;
+}
+
+function updateCar(latlng){
+  if(!carMarker){ carMarker=L.marker(latlng,{icon:carIcon}).addTo(map); map.setView(latlng,16); }
+  else carMarker.setLatLng(latlng);
+
+  routeLine.setLatLngs([latlng,destination]);
+
+  // --- Turn detection ---
+  const bearing = getBearing(latlng.lat, latlng.lng, destination.lat, destination.lng);
+  if(lastBearing!==null){
+    let diff = bearing - lastBearing;
+    if(diff > 180) diff -= 360;
+    if(diff < -180) diff += 360;
+    if(diff > 30) playAudio(audioTurnRight);
+    if(diff < -30) playAudio(audioTurnLeft);
+  }
+  lastBearing = bearing;
+
+  // --- Arrival detection ---
+  if(!arrived && latlng.distanceTo(destination)<10){
+    arrived = true;
+    playAudio(audioArrival);
+    document.getElementById('celebration').style.display='flex';
+    startConfetti();
+  }
+}
+
+// --- Start Button ---
+document.getElementById('startBtn').onclick = function(){
+  playAudio(audioStart);
+  if(navigator.geolocation){
+    navigator.geolocation.watchPosition(pos=>{
+      const latlng = L.latLng(pos.coords.latitude,pos.coords.longitude);
+      updateCar(latlng);
+      map.setView(latlng,16);
+    }, err=>alert("GPS error: "+err.message), {enableHighAccuracy:true});
+  } else alert("Geolocation not supported");
+};
 </script>
 </body>
 </html>
