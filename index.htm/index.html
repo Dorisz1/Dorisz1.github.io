@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Birthday GPS for Christian</title>
+<title>Birthday GPS for Krisztian</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
@@ -89,7 +89,7 @@ const carIcon = L.icon({
 let carMarker = null;
 
 // --- Destination ---
-const destination = L.latLng(47.5089, 19.0261);
+const destination = L.latLng(47.50284, 19.03470);
 
 // --- Destination Marker ---
 const destinationIcon = L.icon({
@@ -152,12 +152,12 @@ function updateCar(latlng){
     document.getElementById('distanceBox').innerText =
         "Distance: " + Math.round(distance) + " m";
 
-    if(!arrived && distance < 20){
+    if(distance = 60){
         arrived = true;
         playAudio(audioArrival);
     }
 
-    if(distance < 10){
+    if(distance < 30){
         document.getElementById('giftIcon').style.display='block';
     }
 }
@@ -167,9 +167,9 @@ document.getElementById('startBtn').onclick = function(){
     playAudio(audioStart);
 
     // Schedule timed audios
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/1.mp3'), 5*60*1000); // 5 min
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/2.mp3'), 8*60*1000); // 8 min total
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/3.mp3'), 11*60*1000); // 11 min total
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/1.mp3'), 3*60*1000); // 5 min
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/2.mp3'), 5*60*1000); // 8 min total
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/3.mp3'), 7*60*1000); // 11 min total
 
     if(navigator.geolocation){
         navigator.geolocation.watchPosition(pos=>{
