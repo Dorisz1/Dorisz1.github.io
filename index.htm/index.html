@@ -31,81 +31,75 @@ font-size:4rem;cursor:pointer;display:none;z-index:3000;}
 const map = L.map('map',{zoomControl:false}).setView([47.5,19],14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
-// --- Car Marker with PNG ---
+// --- Car Marker (bigger) ---
 const carIcon = L.icon({
     iconUrl: 'https://Dorisz1.github.io/assets/car.png',
-    iconSize: [48, 48],
-    iconAnchor: [24, 24]
+    iconSize: [64,64],     // bigger size
+    iconAnchor: [32,32]    // center anchor
 });
 let carMarker = null;
 
 // --- Destination ---
 const destination = L.latLng(47.5007,19.0336);
-
-// --- Fallback start location ---
 const fallbackStart = L.latLng(47.498,19.04);
 
-// --- Routing Machine ---
-let routingControl = L.Routing.control({
-    waypoints: [fallbackStart, destination],
-    router: L.Routing.osrmv1({serviceUrl: 'https://router.project-osrm.org/route/v1'}),
-    lineOptions: {styles: [{color:'#FFA500', weight:5}]},
-    addWaypoints: false,
-    draggableWaypoints: false,
-    fitSelectedRoutes: false,
-    createMarker: ()=>null
-}).addTo(map);
-
-let lastRouteLatLng = fallbackStart;
-function updateRoute(latlng){
-    if(!lastRouteLatLng || latlng.distanceTo(lastRouteLatLng) > 5){
-        routingControl.setWaypoints([latlng, destination]);
-        lastRouteLatLng = latlng;
-    }
-}
-
-// --- Audio URLs ---
+// --- Audio ---
 const audioStart = 'https://Dorisz1.github.io/assets/start.mp3';
 const audioTurnLeft = 'https://Dorisz1.github.io/assets/turnleft.mp3';
 const audioTurnRight = 'https://Dorisz1.github.io/assets/turnright.mp3';
 const audioArrival = 'https://Dorisz1.github.io/assets/arrival.mp3';
 const birthdaySong = 'https://Dorisz1.github.io/assets/birthdaysong.mp3';
-function playAudio(url){ const audio=new Audio(url); audio.play(); }
+function playAudio(url){ new Audio(url).play(); }
 
-// --- GPS & Turn Detection ---
+// --- Routing Machine ---
+let routingControl = L.Routing.control({
+    waypoints:[fallbackStart, destination],
+    router: L.Routing.osrmv1({serviceUrl:'https://router.project-osrm.org/route/v1'}),
+    lineOptions:{styles:[{color:'#FFA500',weight:5}]},
+    addWaypoints:false,
+    draggableWaypoints:false,
+    fitSelectedRoutes:false,
+    createMarker:()=>null
+}).addTo(map);
+
+// Store route steps for turn detection
+let routeSteps = [];
+routingControl.on('routesfound', function(e){
+    const route = e.routes[0];
+    routeSteps = [];
+    route.instructions.forEach(inst=>{
+        routeSteps.push({
+            latlng: L.latLng(inst.lat, inst.lng),
+            type: inst.type,
+            done:false
+        });
+    });
+});
+
+// --- Update car position ---
 let arrived = false;
-let lastBearing = null;
-
-function getBearing(lat1, lon1, lat2, lon2){
-  const dLon = (lon2-lon1)*Math.PI/180;
-  const y = Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
-  const x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180) -
-            Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLon);
-  const brng = Math.atan2(y,x)*180/Math.PI;
-  return (brng+360)%360;
-}
-
 function updateCar(latlng){
-    if(!carMarker){ 
-        carMarker=L.marker(latlng,{icon:carIcon}).addTo(map); 
+    if(!carMarker){
+        carMarker = L.marker(latlng,{icon:carIcon}).addTo(map);
         map.setView(latlng,16);
     } else {
         carMarker.setLatLng(latlng);
     }
 
-    updateRoute(latlng);
+    // Update route
+    routingControl.setWaypoints([latlng,destination]);
     map.setView(latlng,16);
 
-    const bearing = getBearing(latlng.lat,latlng.lng,destination.lat,destination.lng);
-    if(lastBearing!==null){
-        let diff = bearing - lastBearing;
-        if(diff>180) diff-=360;
-        if(diff<-180) diff+=360;
-        if(diff>30) playAudio(audioTurnRight);
-        if(diff<-30) playAudio(audioTurnLeft);
-    }
-    lastBearing = bearing;
+    // Check for turns
+    routeSteps.forEach(step=>{
+        if(!step.done && latlng.distanceTo(step.latlng)<10){
+            if(step.type==='turn-left') playAudio(audioTurnLeft);
+            else if(step.type==='turn-right') playAudio(audioTurnRight);
+            step.done = true;
+        }
+    });
 
+    // Arrival
     if(!arrived && latlng.distanceTo(destination)<10){
         arrived = true;
         playAudio(audioArrival);
@@ -124,7 +118,7 @@ document.getElementById('startBtn').onclick = function(){
     } else alert("Geolocation not supported");
 };
 
-// --- Gift Icon Click ---
+// --- Gift Icon ---
 document.getElementById('giftIcon').onclick = function(){
     playAudio(birthdaySong);
 };
