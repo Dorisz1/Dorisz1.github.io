@@ -50,10 +50,24 @@ html,body,#map {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
   50% { transform: translate(-50%, -60%) scale(1.2); }
 }
+
+#distanceBox {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(255,255,255,0.9);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-family: sans-serif;
+  font-size: 16px;
+  z-index: 1500;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
 </style>
 </head>
 <body>
 <div id="map"></div>
+<div id="distanceBox">Distance: -- m</div>
 <div id="controls">
   <button id="startBtn" class="btn">Start</button>
 </div>
@@ -133,8 +147,10 @@ function updateCar(latlng){
     }
     lastBearing = bearing;
 
-    // Arrival logic
+    // Distance + Arrival logic
     const distance = latlng.distanceTo(destination);
+    document.getElementById('distanceBox').innerText =
+        "Distance: " + Math.round(distance) + " m";
 
     if(!arrived && distance < 20){
         arrived = true;
@@ -149,6 +165,12 @@ function updateCar(latlng){
 // --- Start Button ---
 document.getElementById('startBtn').onclick = function(){
     playAudio(audioStart);
+
+    // Schedule timed audios
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/1.mp3'), 5*60*1000); // 5 min
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/2.mp3'), 8*60*1000); // 8 min total
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/3.mp3'), 11*60*1000); // 11 min total
+
     if(navigator.geolocation){
         navigator.geolocation.watchPosition(pos=>{
             const latlng = L.latLng(pos.coords.latitude,pos.coords.longitude);
