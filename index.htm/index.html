@@ -5,7 +5,6 @@
 <title>Birthday GPS for Christian</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 <style>
 html,body,#map {height:100%;margin:0;padding:0;}
 #controls{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
@@ -24,24 +23,22 @@ font-size:4rem;cursor:pointer;display:none;z-index:3000;}
 <div id="giftIcon">🎁</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 
 <script>
 // --- Map Setup ---
-const map = L.map('map',{zoomControl:false}).setView([47.5,19],14);
+const map = L.map('map',{zoomControl:false}).setView([47.5,19],16);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
-// --- Car Marker (bigger) ---
+// --- Car Marker ---
 const carIcon = L.icon({
     iconUrl: 'https://Dorisz1.github.io/assets/car.png',
-    iconSize: [64,64],     // bigger size
-    iconAnchor: [32,32]    // center anchor
+    iconSize: [64,64],     
+    iconAnchor: [32,32]    
 });
 let carMarker = null;
 
 // --- Destination ---
 const destination = L.latLng(47.5007,19.0336);
-const fallbackStart = L.latLng(47.498,19.04);
 
 // --- Audio ---
 const audioStart = 'https://Dorisz1.github.io/assets/start.mp3';
@@ -51,32 +48,18 @@ const audioArrival = 'https://Dorisz1.github.io/assets/arrival.mp3';
 const birthdaySong = 'https://Dorisz1.github.io/assets/birthdaysong.mp3';
 function playAudio(url){ new Audio(url).play(); }
 
-// --- Routing Machine ---
-let routingControl = L.Routing.control({
-    waypoints:[fallbackStart, destination],
-    router: L.Routing.osrmv1({serviceUrl:'https://router.project-osrm.org/route/v1'}),
-    lineOptions:{styles:[{color:'#FFA500',weight:5}]},
-    addWaypoints:false,
-    draggableWaypoints:false,
-    fitSelectedRoutes:false,
-    createMarker:()=>null
-}).addTo(map);
+// --- Turn detection (simplified) ---
+let lastBearing = null;
+function getBearing(lat1, lon1, lat2, lon2){
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const y = Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
+  const x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180) -
+            Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLon);
+  const brng = Math.atan2(y,x)*180/Math.PI;
+  return (brng+360)%360;
+}
 
-// Store route steps for turn detection
-let routeSteps = [];
-routingControl.on('routesfound', function(e){
-    const route = e.routes[0];
-    routeSteps = [];
-    route.instructions.forEach(inst=>{
-        routeSteps.push({
-            latlng: L.latLng(inst.lat, inst.lng),
-            type: inst.type,
-            done:false
-        });
-    });
-});
-
-// --- Update car position ---
+// --- Update car ---
 let arrived = false;
 function updateCar(latlng){
     if(!carMarker){
@@ -86,18 +69,18 @@ function updateCar(latlng){
         carMarker.setLatLng(latlng);
     }
 
-    // Update route
-    routingControl.setWaypoints([latlng,destination]);
     map.setView(latlng,16);
 
-    // Check for turns
-    routeSteps.forEach(step=>{
-        if(!step.done && latlng.distanceTo(step.latlng)<10){
-            if(step.type==='turn-left') playAudio(audioTurnLeft);
-            else if(step.type==='turn-right') playAudio(audioTurnRight);
-            step.done = true;
-        }
-    });
+    // Turn detection
+    const bearing = getBearing(latlng.lat, latlng.lng, destination.lat, destination.lng);
+    if(lastBearing!==null){
+        let diff = bearing - lastBearing;
+        if(diff>180) diff-=360;
+        if(diff<-180) diff+=360;
+        if(diff>30) playAudio(audioTurnRight);
+        else if(diff<-30) playAudio(audioTurnLeft);
+    }
+    lastBearing = bearing;
 
     // Arrival
     if(!arrived && latlng.distanceTo(destination)<10){
