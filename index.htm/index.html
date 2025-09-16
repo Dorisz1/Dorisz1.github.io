@@ -29,85 +29,6 @@
       z-index:1000; background:rgba(0,0,0,0.7); color:#fff;
       padding:6px 10px; border-radius:6px; font-family:sans-serif; font-size:13px;
     }
-    /* --- Confetti celebration overlay --- */
-    #celebration {
-      position:fixed; inset:0; background:rgba(0,0,0,0.85);
-      display:none; justify-content:center; align-items:center;
-      flex-direction:column; z-index:2000; color:#fff; text-align:center;
-    }
-    #celebration h1 {
-      font-size:2.2rem; margin:0; color:#ffeb3b; text-shadow:0 0 10px #ff4081;
-      font-family: "Comic Sans MS", cursive, sans-serif;
-    }
-    canvas#confettiCanvas {
-      position:fixed; inset:0; z-index:2100; pointer-events:none;
-    }
-  </style>
-</head>
-<body>
-<div id="map" class="rotateMode"></div>
-
-<div id="etaBox">Distance: –<br>ETA: –</div>
-
-<div id="controls">
-  <h3>🎉 Boldog 32. szülinapot, Krisztián! 🎂</h3>
-  <div class="row">
-    <button id="startBtn" class="btn">Start</button>
-    <button id="pauseBtn" class="btn">Pause</button>
-    <button id="resetBtn" class="btn">Reset</button>
-  </div>
-  <div class="row">
-    <label class="small">Sebesség:</label>
-    <input id="speed" type="range" min="10" max="200" value="80">
-    <span id="speedVal" class="small">80 km/h</span>
-  </div>
-  <div class="row">
-    <button id="setDest" class="btn">📍 Válaszd ki az éttermet</button>
-  </div>
-</div>
-
-<div id="celebration">
-  <h1>🎉 BOLDOG SZÜLINAPOT KRISZTIÁN! 🎉</h1>
-</div>
-<canvas id="confettiCanvas"></canvas>
-
-<audio id="birthdayMusic" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1c6e2cf96d.mp3?filename=happy-birthday-to-you-instrumental-12533.mp3" preload="auto"></audio>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routin
-Te küldted
-<!doctype html>
-<html lang="hu">
-<head>
-  <meta charset="utf-8" />
-  <title>Birthday GPS for Krisztián</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-  <style>
-    html,body,#map {height:100%;margin:0;padding:0;overflow:hidden;}
-    #map.rotateMode .leaflet-map-pane {
-      transform-origin: center center;
-      transition: transform 0.2s linear;
-    }
-    #controls {
-      position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
-      z-index:1000; background:rgba(255,255,255,0.95);
-      padding:10px 14px; border-radius:12px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.3);
-      font-family:sans-serif; width:90%; max-width:340px; text-align:center;
-    }
-    #controls h3 {margin:0 0 6px 0; font-size:15px;}
-    .row{margin:6px 0; display:flex; gap:8px; justify-content:center;}
-    .btn{flex:1;padding:10px 0;border-radius:8px;border:1px solid #ccc;background:#f7f7f7;font-size:14px;touch-action: manipulation;}
-    input[type="range"]{width:120px;}
-    .small{font-size:12px;}
-    #etaBox{
-      position:absolute; top:10px; left:50%; transform:translateX(-50%);
-      z-index:1000; background:rgba(0,0,0,0.7); color:#fff;
-      padding:6px 10px; border-radius:6px; font-family:sans-serif; font-size:13px;
-    }
-    /* --- Confetti celebration overlay --- */
     #celebration {
       position:fixed; inset:0; background:rgba(0,0,0,0.85);
       display:none; justify-content:center; align-items:center;
@@ -156,6 +77,14 @@ Te küldted
 <script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
 
 <script>
+// --- FIX: Use correct Leaflet marker icons from CDN ---
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+});
+
+// --- GPS / Map / Car Setup ---
 let currentPos=null, gpsMarker=null, carMarker=null;
 let routeLatLngs=[], routeSteps=[];
 let animIndex=0, animFrame=null, paused=true, lastTimestamp=null;
@@ -183,6 +112,7 @@ const carIcon = L.divIcon({
   </div>`
 });
 
+// --- Controls ---
 const startBtn=document.getElementById('startBtn');
 const pauseBtn=document.getElementById('pauseBtn');
 const resetBtn=document.getElementById('resetBtn');
@@ -193,39 +123,15 @@ const etaBox=document.getElementById('etaBox');
 const music=document.getElementById('birthdayMusic');
 speedSlider.oninput=()=>speedVal.textContent=speedSlider.value+' km/h';
 
-function bearing(a,b){
-  const toRad=Math.PI/180,toDeg=180/Math.PI;
-  const lat1=a.lat*toRad,lat2=b.lat*toRad,dLon=(b.lng-a.lng)*toRad;
-  const y=Math.sin(dLon)*Math.cos(lat2);
-  const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
-  return (Math.atan2(y,x)*toDeg+360)%360;
-}
+function bearing(a,b){const toRad=Math.PI/180,toDeg=180/Math.PI;const lat1=a.lat*toRad,lat2=b.lat*toRad,dLon=(b.lng-a.lng)*toRad;const y=Math.sin(dLon)*Math.cos(lat2);const x=Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);return (Math.atan2(y,x)*toDeg+360)%360;}
 function lerp(a,b,t){return L.latLng(a.lat+(b.lat-a.lat)*t,a.lng+(b.lng-a.lng)*t);}
 function mps(){return (speedSlider.value*1000)/3600000;}
-function setCarRotation(deg){
-  const el=document.querySelector('#car');
-  if(el) el.style.transform=`rotate(${deg}deg)`;
-  document.querySelector('.leaflet-map-pane').style.transform=`rotate(${-deg}deg)`;
-}
+function setCarRotation(deg){const el=document.querySelector('#car');if(el) el.style.transform=`rotate(${deg}deg)`;document.querySelector('.leaflet-map-pane').style.transform=`rotate(${-deg}deg)`;}
+function speak(text){const u=new SpeechSynthesisUtterance(text);u.rate=1; u.pitch=1.1; u.lang='hu-HU';speechSynthesis.speak(u);}
 
-function speak(text){
-  const u=new SpeechSynthesisUtterance(text);
-  u.rate=1; u.pitch=1.1; u.lang='hu-HU';
-  speechSynthesis.speak(u);
-}
-
-function startAnim(){
-  if(routeLatLngs.length<2)return alert('Válaszd ki az éttermet először');
-  if(!carMarker)carMarker=L.marker(routeLatLngs[0],{icon:carIcon}).addTo(map);
-  paused=false;lastTimestamp=performance.now();
-  if(!animFrame)animFrame=requestAnimationFrame(step);
-  speak("Indulás Krisztián, szülinapos sofőr!");
-}
+function startAnim(){if(routeLatLngs.length<2)return alert('Válaszd ki az éttermet először');if(!carMarker)carMarker=L.marker(routeLatLngs[0],{icon:carIcon}).addTo(map);paused=false;lastTimestamp=performance.now();if(!animFrame)animFrame=requestAnimationFrame(step);speak("Indulás Krisztián, szülinapos sofőr!");}
 function pauseAnim(){paused=true;if(animFrame)cancelAnimationFrame(animFrame);animFrame=null;}
-function resetAnim(){
-  pauseAnim();animIndex=0;if(carMarker)carMarker.setLatLng(routeLatLngs[0]);setCarRotation(0);
-  stopConfetti();
-}
+function resetAnim(){pauseAnim();animIndex=0;if(carMarker)carMarker.setLatLng(routeLatLngs[0]);setCarRotation(0);stopConfetti();}
 
 function step(now){
   if(paused)return;
@@ -233,125 +139,40 @@ function step(now){
   while(remain>0 && animIndex<routeLatLngs.length-1){
     const p1=routeLatLngs[animIndex], p2=routeLatLngs[animIndex+1], dist=p1.distanceTo(p2);
     const frac=((routeLatLngs._progress||0)*dist+remain)/dist;
-    if(frac>=1){
-      animIndex++;routeLatLngs._progress=0;remain-=dist;
-      if(carMarker)carMarker.setLatLng(p2);
-      const head=bearing(p1,p2);setCarRotation(head);map.setView(p2);
-      checkStep(p2);
-    } else {
-      const pos=lerp(p1,p2,frac);
-      if(carMarker)carMarker.setLatLng(pos);
-      const head=bearing(p1,p2);setCarRotation(head);map.setView(pos);
-      routeLatLngs._progress=frac;remain=0;
-    }
+    if(frac>=1){animIndex++;routeLatLngs._progress=0;remain-=dist;if(carMarker)carMarker.setLatLng(p2);const head=bearing(p1,p2);setCarRotation(head);map.setView(p2);checkStep(p2);}
+    else{const pos=lerp(p1,p2,frac);if(carMarker)carMarker.setLatLng(pos);const head=bearing(p1,p2);setCarRotation(head);map.setView(pos);routeLatLngs._progress=frac;remain=0;}
   }
-  if(animIndex>=routeLatLngs.length-1){
-    paused=true;animFrame=null;
-    speak("Megérkeztél! Boldog szülinapot Krisztián!");
-    music.play();
-    startConfetti();
-    return;
-  }
+  if(animIndex>=routeLatLngs.length-1){paused=true;animFrame=null;speak("Megérkeztél! Boldog szülinapot Krisztián!");music.play();startConfetti();return;}
   animFrame=requestAnimationFrame(step);
 }
 
 routingControl.on('routesfound',e=>{
-  const r=e.routes[0]; 
-  routeLatLngs=r.coordinates.map(c=>L.latLng(c.lat,c.lng));
-  routeSteps=r.instructions; 
-  animIndex=0;routeLatLngs._progress=0;
+  const r=e.routes[0]; routeLatLngs=r.coordinates.map(c=>L.latLng(c.lat,c.lng)); routeSteps=r.instructions; animIndex=0;routeLatLngs._progress=0;
   if(carMarker){carMarker.setLatLng(routeLatLngs[0]);setCarRotation(0);}
-  map.fitBounds(L.polyline(routeLatLngs).getBounds(),{padding:[40,40]});
-  updateETA(r.summary);
-  speak("Útvonal kész. Indulhat a szülinapos túra!");
+  map.fitBounds(L.polyline(routeLatLngs).getBounds(),{padding:[40,40]}); updateETA(r.summary); speak("Útvonal kész. Indulhat a szülinapos túra!");
 });
 
 let nextStepIndex=0;
-function checkStep(pos){
-  if(!routeSteps || !routeSteps.length) return;
-  const next = routeSteps[nextStepIndex];
-  if(!next) return;
-  const dist = pos.distanceTo(L.latLng(next.lat, next.lng));
-  if(dist < 25){
-    const funny=[
-      Fordulj ${next.text}. 32 évesen már profinak kell lenned.,
-      Haladj ${next.text}. A torta vár rád.,
-      A 32 gyertya nevében, ${next.text}!,
-      Fordulj ${next.text}. A térded bírni fogja.
-    ];
-    speak(funny[Math.floor(Math.random()*funny.length)]);
-    nextStepIndex++;
-  }
-}
-
-function updateETA(summary){
-  const dist = (summary.totalDistance/1000).toFixed(1)+" km";
-  const mins = Math.round(summary.totalTime/60);
-  etaBox.innerHTML = Táv: ${dist}<br>Érkezés: ${mins} perc;
-}
-
-function setDestination(dest){
-  if(!currentPos){alert('GPS pozícióra vár...');return;}
-  routingControl.setWaypoints([currentPos,dest]);
-}
+function checkStep(pos){if(!routeSteps||!routeSteps.length)return; const next=routeSteps[nextStepIndex]; if(!next)return; const dist=pos.distanceTo(L.latLng(next.lat,next.lng)); if(dist<25){const funny=[`Fordulj ${next.text}. 32 évesen már profinak kell lenned.`,`Haladj ${next.text}. A torta vár rád.`,`A 32 gyertya nevében, ${next.text}!`,`Fordulj ${next.text}. A térded bírni fogja.`]; speak(funny[Math.floor(Math.random()*funny.length)]); nextStepIndex++;}}
+function updateETA(summary){const dist=(summary.totalDistance/1000).toFixed(1)+" km"; const mins=Math.round(summary.totalTime/60); etaBox.innerHTML=`Táv: ${dist}<br>Érkezés: ${mins} perc`;}
+function setDestination(dest){if(!currentPos){alert('GPS pozícióra vár...');return;} routingControl.setWaypoints([currentPos,dest]);}
 
 setDestBtn.onclick=()=>{map.once('click',e=>setDestination(e.latlng)); alert('Kattints az étteremre a térképen');};
 startBtn.onclick=startAnim; pauseBtn.onclick=pauseAnim; resetBtn.onclick=resetAnim;
 
-if(navigator.geolocation){
-  navigator.geolocation.watchPosition(pos=>{
-    currentPos = L.latLng(pos.coords.latitude,pos.coords.longitude);
-    if(!gpsMarker){
-      gpsMarker = L.circleMarker(currentPos,{radius:5,color:'blue'}).addTo(map).bindPopup('Itt vagy');
-      map.setView(currentPos,15);
-    } else gpsMarker.setLatLng(currentPos);
-  },err=>alert('GPS hiba: '+err.message),{enableHighAccuracy:true});
-} else alert('A geolokáció nem támogatott');
+if(navigator.geolocation){navigator.geolocation.watchPosition(pos=>{currentPos=L.latLng(pos.coords.latitude,pos.coords.longitude);if(!gpsMarker){gpsMarker=L.circleMarker(currentPos,{radius:5,color:'blue'}).addTo(map).bindPopup('Itt vagy'); map.setView(currentPos,15);} else gpsMarker.setLatLng(currentPos);},err=>alert('GPS hiba: '+err.message),{enableHighAccuracy:true});}
+else alert('A geolokáció nem támogatott');
 
 // --- Confetti animation ---
-const canvas = document.getElementById('confettiCanvas');
-const ctx = canvas.getContext('2d');
-let confetti = [], confettiActive=false;
-function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+const canvas=document.getElementById('confettiCanvas'); const ctx=canvas.getContext('2d'); let confetti=[],confettiActive=false;
+function resize(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
 window.addEventListener('resize',resize); resize();
-function createConfetti(){
-  confetti = Array.from({length:150},()=>({
-    x:Math.random()*canvas.width,
-    y:Math.random()*canvas.height-canvas.height,
-    r:Math.random()*6+4,
-    d:Math.random()*10+10,
-    color:`hsl(${Math.random()*360},100%,60%)`,
-    tilt:Math.random()*10-10
-  }));
-}
-function drawConfetti(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  confetti.forEach(c=>{
-    ctx.beginPath();
-    ctx.fillStyle=c.color;
-    ctx.ellipse(c.x,c.y,c.r,c.r/2,Math.random()*Math.PI,0,2*Math.PI);
-    ctx.fill();
-  });
-  updateConfetti();
-}
-function updateConfetti(){
-  confetti.forEach(c=>{
-    c.y += c.d/6;
-    c.x += Math.sin(c.y/50)*2;
-    if(c.y>canvas.height) c.y = -10;
-  });
-}
-function animateConfetti(){
-  if(confettiActive){drawConfetti(); requestAnimationFrame(animateConfetti);}
-}
-function startConfetti(){
-  document.getElementById('celebration').style.display='flex';
-  confettiActive=true; createConfetti(); animateConfetti();
-}
-function stopConfetti(){
-  confettiActive=false; ctx.clearRect(0,0,canvas.width,canvas.height);
-  document.getElementById('celebration').style.display='none';
-}
+function createConfetti(){confetti=Array.from({length:150},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,r:Math.random()*6+4,d:Math.random()*10+10,color:`hsl(${Math.random()*360},100%,60%)`,tilt:Math.random()*10-10}));}
+function drawConfetti(){ctx.clearRect(0,0,canvas.width,canvas.height); confetti.forEach(c=>{ctx.beginPath();ctx.fillStyle=c.color; ctx.ellipse(c.x,c.y,c.r,c.r/2,Math.random()*Math.PI,0,2*Math.PI); ctx.fill();}); updateConfetti();}
+function updateConfetti(){confetti.forEach(c=>{c.y+=c.d/6; c.x+=Math.sin(c.y/50)*2; if(c.y>canvas.height)c.y=-10;});}
+function animateConfetti(){if(confettiActive){drawConfetti();requestAnimationFrame(animateConfetti);}}
+function startConfetti(){document.getElementById('celebration').style.display='flex'; confettiActive=true; createConfetti(); animateConfetti();}
+function stopConfetti(){confettiActive=false; ctx.clearRect(0,0,canvas.width,canvas.height); document.getElementById('celebration').style.display='none';}
 </script>
 </body>
 </html>
