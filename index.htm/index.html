@@ -53,21 +53,19 @@ let carMarker = null;
 // --- Destination ---
 const destination = L.latLng(47.5007,19.0336);
 
-// --- Routing ---
-let routingControl = null;
+// --- Routing Machine (street-following route) ---
+let routingControl = L.Routing.control({
+    waypoints: [destination], // placeholder
+    router: L.Routing.osrmv1({serviceUrl: 'https://router.project-osrm.org/route/v1'}),
+    lineOptions: {styles: [{color:'#FFA500', weight:5}]},
+    addWaypoints: false,
+    draggableWaypoints: false,
+    fitSelectedRoutes: true,
+    createMarker: ()=>null
+}).addTo(map);
+
 function updateRoute(latlng){
-    if(routingControl){
-        routingControl.setWaypoints([latlng,destination]);
-    } else {
-        routingControl = L.Routing.control({
-            waypoints:[latlng,destination],
-            lineOptions:{styles:[{color:'#FFA500',weight:5}]},
-            addWaypoints:false,
-            draggableWaypoints:false,
-            fitSelectedRoutes:true,
-            createMarker:()=>null
-        }).addTo(map);
-    }
+    routingControl.setWaypoints([latlng, destination]);
 }
 
 // --- Audio URLs ---
@@ -88,7 +86,7 @@ window.addEventListener('resize',resize); resize();
 function createConfetti(){confetti=Array.from({length:150},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,r:Math.random()*6+4,d:Math.random()*10+10,color:`hsl(${Math.random()*360},100%,60%)`,tilt:Math.random()*10-10}));}
 function drawConfetti(){ctx.clearRect(0,0,canvas.width,canvas.height); confetti.forEach(c=>{ctx.beginPath();ctx.fillStyle=c.color;ctx.ellipse(c.x,c.y,c.r,c.r/2,Math.random()*Math.PI,0,2*Math.PI);ctx.fill();updateConfetti();});}
 function updateConfetti(){confetti.forEach(c=>{c.y+=c.d/6;c.x+=Math.sin(c.y/50)*2;if(c.y>canvas.height)c.y=-10;});}
-function animateConfetti(){if(confettiActive){drawConfetti();requestAnimationFrame(animateConfetti);}}
+function animateConfetti(){if(confettiActive){drawConfetti();requestAnimationFrame(animateConfetti);} }
 function startConfetti(){confettiActive=true;createConfetti();animateConfetti();}
 function stopConfetti(){confettiActive=false;ctx.clearRect(0,0,canvas.width,canvas.height);}
 
