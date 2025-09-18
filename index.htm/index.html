@@ -51,10 +51,13 @@ html,body,#map {
   animation: pulse 1.5s infinite;
 }
 
+#startBtn.stopped {
+  animation: none;
+}
+
 #startBtn:active {
   transform: scale(0.95);
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  animation: none;
 }
 
 @keyframes pulse {
@@ -180,6 +183,9 @@ function updateCar(latlng){
 // --- Start Button ---
 document.getElementById('startBtn').onclick = function(){
     playAudio(audioStart);
+
+    // Stop pulsing
+    this.classList.add('stopped');
 
     if(navigator.geolocation){
         navigator.geolocation.watchPosition(pos=>{
