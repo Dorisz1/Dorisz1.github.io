@@ -54,7 +54,7 @@ html,body,#map {
 #startBtn:active {
   transform: scale(0.95);
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  animation: none; /* Stop pulsing when pressed */
+  animation: none;
 }
 
 @keyframes pulse {
@@ -121,13 +121,20 @@ L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Destination
 const audioStart = 'https://Dorisz1.github.io/assets/start.mp3';
 const audioArrival = 'https://Dorisz1.github.io/assets/arrival.mp3';
 const birthdaySong = 'https://Dorisz1.github.io/assets/birthdaysong.mp3';
+const audio1 = 'https://dorisz1.github.io/assets/1.mp3';
+const audio2 = 'https://dorisz1.github.io/assets/2.mp3';
+const audio3 = 'https://dorisz1.github.io/assets/3.mp3';
 
 function playAudio(url){
     const audio = new Audio(url);
     audio.play();
 }
 
+// --- Flags to avoid replay ---
 let arrived = false;
+let playedAudio1 = false;
+let playedAudio2 = false;
+let playedAudio3 = false;
 
 // --- Update Car ---
 function updateCar(latlng){
@@ -144,11 +151,27 @@ function updateCar(latlng){
     document.getElementById('distanceBox').innerText =
         "Distance: " + Math.round(distance) + " m";
 
+    // Distance-based audio triggers
+    if(!playedAudio1 && distance < 600){
+        playedAudio1 = true;
+        playAudio(audio1);
+    }
+    if(!playedAudio2 && distance < 400){
+        playedAudio2 = true;
+        playAudio(audio2);
+    }
+    if(!playedAudio3 && distance < 200){
+        playedAudio3 = true;
+        playAudio(audio3);
+    }
+
+    // Arrival audio
     if(!arrived && distance < 60){
         arrived = true;
         playAudio(audioArrival);
     }
 
+    // Gift icon
     if(distance < 30){
         document.getElementById('giftIcon').style.display='block';
     }
@@ -157,11 +180,6 @@ function updateCar(latlng){
 // --- Start Button ---
 document.getElementById('startBtn').onclick = function(){
     playAudio(audioStart);
-
-    // Schedule timed audios
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/1.mp3'), 2*60*1000);
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/2.mp3'), 3*60*1000);
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/3.mp3'), 5*60*1000);
 
     if(navigator.geolocation){
         navigator.geolocation.watchPosition(pos=>{
