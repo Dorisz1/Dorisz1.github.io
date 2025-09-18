@@ -152,7 +152,7 @@ function updateCar(latlng){
     document.getElementById('distanceBox').innerText =
         "Distance: " + Math.round(distance) + " m";
 
-    if(distance = 60){
+    if(!arrived && distance < 60){
         arrived = true;
         playAudio(audioArrival);
     }
@@ -167,9 +167,9 @@ document.getElementById('startBtn').onclick = function(){
     playAudio(audioStart);
 
     // Schedule timed audios
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/1.mp3'), 3*60*1000); // 5 min
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/2.mp3'), 5*60*1000); // 8 min total
-    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/3.mp3'), 7*60*1000); // 11 min total
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/1.mp3'), 2*60*1000);
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/2.mp3'), 3*60*1000);
+    setTimeout(()=> playAudio('https://dorisz1.github.io/assets/3.mp3'), 5*60*1000);
 
     if(navigator.geolocation){
         navigator.geolocation.watchPosition(pos=>{
