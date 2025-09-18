@@ -11,29 +11,59 @@ html,body,#map {
   margin:0;
   padding:0;
 }
-#controls{
-  position:fixed;
-  bottom:10px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:1000;
-  background:rgba(255,255,255,0.95);
-  padding:10px 14px;
-  border-radius:12px;
-  font-family:sans-serif;
-  width:90%;
-  max-width:220px;
-  text-align:center;
-}
-.btn{
-  flex:1;
-  padding:12px 0;
-  border-radius:8px;
-  border:1px solid #ccc;
-  background:#f7f7f7;
-  font-size:16px;
+
+/* Distance top-left box */
+#distanceBox {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(255,255,255,0.9);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-family: sans-serif;
+  font-size: 16px;
+  z-index: 1500;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
+/* Controls container */
+#controls {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+/* Start button styling */
+#startBtn {
+  padding: 16px 32px;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #ff7b00, #ffb347);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: 'Helvetica Neue', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: pulse 1.5s infinite;
+}
+
+#startBtn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  animation: none; /* Stop pulsing when pressed */
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 123, 0, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 123, 0, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 123, 0, 0); }
+}
+
+/* Gift icon */
 #giftIcon {
   position: fixed;
   top: 50%;
@@ -50,26 +80,13 @@ html,body,#map {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
   50% { transform: translate(-50%, -60%) scale(1.2); }
 }
-
-#distanceBox {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  background: rgba(255,255,255,0.9);
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-family: sans-serif;
-  font-size: 16px;
-  z-index: 1500;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div id="distanceBox">Distance: -- m</div>
 <div id="controls">
-  <button id="startBtn" class="btn">Start</button>
+  <button id="startBtn">Start</button>
 </div>
 <div id="giftIcon">🎁</div>
 
@@ -83,8 +100,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).a
 // --- Car Marker ---
 const carIcon = L.icon({
     iconUrl: 'https://Dorisz1.github.io/assets/car.png',
-    iconSize: [64, 64],
-    iconAnchor: [32, 32]
+    iconSize: [72, 72],
+    iconAnchor: [36, 36]
 });
 let carMarker = null;
 
@@ -102,8 +119,6 @@ L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Destination
 
 // --- Audio ---
 const audioStart = 'https://Dorisz1.github.io/assets/start.mp3';
-const audioTurnLeft = 'https://Dorisz1.github.io/assets/turnleft.mp3';
-const audioTurnRight = 'https://Dorisz1.github.io/assets/turnright.mp3';
 const audioArrival = 'https://Dorisz1.github.io/assets/arrival.mp3';
 const birthdaySong = 'https://Dorisz1.github.io/assets/birthdaysong.mp3';
 
@@ -112,18 +127,7 @@ function playAudio(url){
     audio.play();
 }
 
-// --- Bearing & Turn Detection ---
 let arrived = false;
-let lastBearing = null;
-
-function getBearing(lat1, lon1, lat2, lon2){
-  const dLon = (lon2-lon1)*Math.PI/180;
-  const y = Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
-  const x = Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180) -
-            Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLon);
-  const brng = Math.atan2(y,x)*180/Math.PI;
-  return (brng+360)%360;
-}
 
 // --- Update Car ---
 function updateCar(latlng){
@@ -136,18 +140,6 @@ function updateCar(latlng){
 
     map.setView(latlng,16);
 
-    // Turn detection
-    const bearing = getBearing(latlng.lat, latlng.lng, destination.lat, destination.lng);
-    if(lastBearing!==null){
-        let diff = bearing - lastBearing;
-        if(diff>180) diff-=360;
-        if(diff<-180) diff+=360;
-        if(diff>30) playAudio(audioTurnRight);
-        else if(diff<-30) playAudio(audioTurnLeft);
-    }
-    lastBearing = bearing;
-
-    // Distance + Arrival logic
     const distance = latlng.distanceTo(destination);
     document.getElementById('distanceBox').innerText =
         "Distance: " + Math.round(distance) + " m";
