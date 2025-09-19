@@ -6,11 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-html,body,#map {
-  height:100%;
-  margin:0;
-  padding:0;
-}
+html,body,#map { height:100%; margin:0; padding:0; }
 
 #distanceBox {
   position: fixed;
@@ -25,37 +21,17 @@ html,body,#map {
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-#controls {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-}
+#controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
 
 #startBtn {
-  padding: 16px 32px;
-  border: none;
-  border-radius: 50px;
+  padding: 16px 32px; border: none; border-radius: 50px;
   background: linear-gradient(135deg, #ff7b00, #ffb347);
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  font-family: 'Helvetica Neue', sans-serif;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: pulse 1.5s infinite;
+  color: white; font-size: 18px; font-weight: bold; font-family: 'Helvetica Neue', sans-serif;
+  cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease; animation: pulse 1.5s infinite;
 }
-
-#startBtn.stopped {
-  animation: none;
-}
-
-#startBtn:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
+#startBtn.stopped { animation: none; }
+#startBtn:active { transform: scale(0.95); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
 
 @keyframes pulse {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 123, 0, 0.7); }
@@ -64,83 +40,45 @@ html,body,#map {
 }
 
 #giftIcon {
-  position: fixed;
-  top: 50%;
-  left: 50%;
+  position: fixed; top: 50%; left: 50%;
   transform: translate(-50%,-50%);
-  font-size: 4rem;
-  cursor: pointer;
-  display: none;
-  z-index: 3000;
+  font-size: 4rem; cursor: pointer;
+  display: none; z-index: 3000;
   animation: bounce 1s infinite;
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -60%) scale(1.2); }
+  0%,100%{ transform: translate(-50%,-50%) scale(1); }
+  50%{ transform: translate(-50%,-60%) scale(1.2); }
 }
 
-/* Cake popup in the middle */
 #cakePopup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
+  position: fixed; top: 50%; left: 50%;
   transform: translate(-50%,-50%);
-  z-index: 4000;
-  display: none;
+  z-index: 4000; display: none;
   cursor: pointer;
   animation: cakeBounce 1s infinite;
 }
-#cakePopup img {
-  width: 150px;
-  height: auto;
-}
+#cakePopup img { width: 150px; height: auto; }
 
 @keyframes cakeBounce {
-  0%, 100% { transform: translate(-50%,-50%) scale(1); }
-  50% { transform: translate(-50%,-60%) scale(1.1); }
+  0%,100%{ transform: translate(-50%,-50%) scale(1); }
+  50%{ transform: translate(-50%,-60%) scale(1.1); }
 }
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div id="distanceBox">Distance: -- m</div>
-<div id="controls">
-  <button id="startBtn">Start</button>
-</div>
+<div id="controls"><button id="startBtn">Start</button></div>
 <div id="giftIcon">🎁</div>
-
-<div id="cakePopup">
-  <img src="https://dorisz1.github.io/assets/happyMS.png" alt="Cake">
-</div>
+<div id="cakePopup"><img src="https://dorisz1.github.io/assets/happyMS.png" alt="Cake"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
 // --- Map Setup ---
 const map = L.map('map',{zoomControl:false}).setView([47.5,19],14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-
-// --- Car Marker ---
-const carIcon = L.icon({
-    iconUrl: 'https://Dorisz1.github.io/assets/car.png',
-    iconSize: [72, 72],
-    iconAnchor: [36, 36]
-});
-let carMarker = null;
-
-// --- Destination ---
-const destination = L.latLng(47.50139415500076, 19.033242823704455);
-const destinationIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/11529/11529542.png',
-    iconSize: [48,48],
-    iconAnchor: [24,48],
-    popupAnchor: [0,-48]
-});
-L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Gift destination");
-
-// --- Cake point ---
-const cakePoint = L.latLng(47.49902998929004, 19.025941528354455);
 
 // --- Audio ---
 const audioStart = 'https://Dorisz1.github.io/assets/start.mp3';
@@ -151,51 +89,45 @@ const audio1 = 'https://dorisz1.github.io/assets/1.mp3';
 const audio2 = 'https://dorisz1.github.io/assets/2.mp3';
 const audio3 = 'https://dorisz1.github.io/assets/3.mp3';
 
-function playAudio(url){
-    const audio = new Audio(url);
-    audio.play();
-}
+function playAudio(url){ const audio = new Audio(url); audio.play(); }
+
+// --- Markers ---
+const carIcon = L.icon({ iconUrl:'https://Dorisz1.github.io/assets/car.png', iconSize:[72,72], iconAnchor:[36,36] });
+const destination = L.latLng(47.50139415500076,19.033242823704455);
+const destinationIcon = L.icon({ iconUrl:'https://cdn-icons-png.flaticon.com/512/11529/11529542.png', iconSize:[48,48], iconAnchor:[24,48], popupAnchor:[0,-48] });
+L.marker(destination, {icon:destinationIcon}).addTo(map).bindPopup("Gift destination");
+
+const cakePoint = L.latLng(47.49902998929004,19.025941528354455);
 
 // --- Flags ---
-let arrived = false;
-let playedAudio1 = false;
-let playedAudio2 = false;
-let playedAudio3 = false;
-let cakeShown = false;
+let carMarker, arrived=false, playedAudio1=false, playedAudio2=false, playedAudio3=false, cakeShown=false;
 
 // --- Update Car ---
 function updateCar(latlng){
-    if(!carMarker){
-        carMarker = L.marker(latlng,{icon:carIcon}).addTo(map);
+    // Show car marker immediately at initial location
+    if(!carMarker){ 
+        carMarker = L.marker(latlng,{icon:carIcon}).addTo(map); 
         map.setView(latlng,16);
-    } else {
-        carMarker.setLatLng(latlng);
-    }
+    } else { carMarker.setLatLng(latlng); }
+
     map.setView(latlng,16);
 
     const distance = latlng.distanceTo(destination);
     const cakeDist = latlng.distanceTo(cakePoint);
 
-    document.getElementById('distanceBox').innerText =
-        `Distance from gift: ${Math.round(distance)} m | Mike: ${Math.round(cakeDist)} m`;
+    document.getElementById('distanceBox').innerText = `Distance from gift: ${Math.round(distance)} m | Mike: ${Math.round(cakeDist)} m`;
 
-    if(!playedAudio1 && distance < 400){ playedAudio1 = true; playAudio(audio1); }
-    if(!playedAudio2 && distance < 300){ playedAudio2 = true; playAudio(audio2); }
-    if(!playedAudio3 && distance < 200){ playedAudio3 = true; playAudio(audio3); }
+    if(!playedAudio1 && distance<400){ playedAudio1=true; playAudio(audio1); }
+    if(!playedAudio2 && distance<300){ playedAudio2=true; playAudio(audio2); }
+    if(!playedAudio3 && distance<200){ playedAudio3=true; playAudio(audio3); }
 
-    if(!arrived && distance < 60){
-        arrived = true;
-        playAudio(audioArrival);
-    }
+    if(!arrived && distance<60){ arrived=true; playAudio(audioArrival); }
+    if(distance<30){ document.getElementById('giftIcon').style.display='block'; }
 
-    if(distance < 30){
-        document.getElementById('giftIcon').style.display='block';
-    }
-
-    // --- Cake logic ---
-    if(!cakeShown && cakeDist < 100){
-        cakeShown = true;
-        document.getElementById('cakePopup').style.display = 'block';
+    // Show cake in the center if within 600 m
+    if(!cakeShown && cakeDist<600){
+        cakeShown=true;
+        document.getElementById('cakePopup').style.display='block';
     }
 }
 
@@ -203,7 +135,6 @@ function updateCar(latlng){
 document.getElementById('startBtn').onclick = function(){
     playAudio(audioStart);
     this.classList.add('stopped');
-
     if(navigator.geolocation){
         navigator.geolocation.watchPosition(pos=>{
             const latlng = L.latLng(pos.coords.latitude,pos.coords.longitude);
@@ -212,15 +143,11 @@ document.getElementById('startBtn').onclick = function(){
     } else alert("Geolocation not supported");
 };
 
-// --- Gift Icon Click ---
-document.getElementById('giftIcon').onclick = function(){
-    playAudio(birthdaySong);
-};
-
-// --- Cake Popup Click ---
-document.getElementById('cakePopup').onclick = function(){
+// --- Click handlers ---
+document.getElementById('giftIcon').onclick = ()=>playAudio(birthdaySong);
+document.getElementById('cakePopup').onclick = ()=>{
     playAudio(cakeAudio);
-    this.style.display = 'none';
+    document.getElementById('cakePopup').style.display='none';
 };
 </script>
 </body>
