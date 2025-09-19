@@ -180,7 +180,7 @@ function updateCar(latlng){
     const cakeDist = latlng.distanceTo(cakePoint);
 
     document.getElementById('distanceBox').innerText =
-        `Distance from cake: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
+        `Destination: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
 
     if(!playedAudio1 && distance < 400){ playedAudio1 = true; playAudio(audio1); }
     if(!playedAudio2 && distance < 300){ playedAudio2 = true; playAudio(audio2); }
@@ -196,17 +196,20 @@ function updateCar(latlng){
     }
 
     // --- Cake logic ---
-    if(!cakeActive && cakeDist < 600){
+    if(!cakeActive && cakeDist < 100){
         cakeActive = true;
         cakeMarker.setIcon(cakeHappy);
-        // Wait until Leaflet has updated the DOM element for the marker
-        setTimeout(()=>{
+
+        setTimeout(() => {
             if(cakeMarker._icon){
                 cakeMarker._icon.classList.add('bouncing-cake');
                 cakeMarker._icon.style.cursor = 'pointer';
-                cakeMarker.on('click', ()=>playAudio(cakeAudio));
+                cakeMarker.on('click', (e) => {
+                    L.DomEvent.stopPropagation(e); 
+                    playAudio(cakeAudio);
+                });
             }
-        },100);
+        }, 100);
     }
 }
 
