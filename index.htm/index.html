@@ -208,7 +208,7 @@ function updateCar(latlng){
     }
 
     // Cake logic
-    if(!cakeActive && cakeDist < 60){
+    if(!cakeActive && cakeDist < 100){
         cakeActive = true;
         cakeMarker.setIcon(cakeHappy);
         cakeMarker._icon.classList.add('bouncing-cake');
