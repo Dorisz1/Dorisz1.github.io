@@ -120,7 +120,7 @@ function updateCar(latlng){
     if(distance<30){ document.getElementById('giftIcon').style.display='block'; }
 
     // --- Show happyMS in center if within 100m ---
-    if(!happyShown && cakeDist<600){
+    if(!happyShown && cakeDist<100){
         happyShown = true;
         if(cakeMarker){ map.removeLayer(cakeMarker); } // remove sadMS marker
         document.getElementById('cakePopup').style.display='block';
