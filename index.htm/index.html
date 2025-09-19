@@ -119,7 +119,7 @@ const carIcon = L.icon({
 let carMarker = null;
 
 // --- Destination ---
-const destination = L.latLng(47.50106631785516, 19.032813874256586);
+const destination = L.latLng(47.50139415500076, 19.033242823704455);
 
 // --- Destination Marker ---
 const destinationIcon = L.icon({
@@ -131,7 +131,7 @@ const destinationIcon = L.icon({
 L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Gift destination");
 
 // --- Cake Marker ---
-const cakePoint = L.latLng(47.50075, 19.03148);
+const cakePoint = L.latLng(47.49902998929004, 19.025941528354455);
 const cakeSad = L.icon({
     iconUrl: 'https://dorisz1.github.io/assets/sadMS.png',
     iconSize: [64,64],
@@ -180,7 +180,7 @@ function updateCar(latlng){
     const cakeDist = latlng.distanceTo(cakePoint);
 
     document.getElementById('distanceBox').innerText =
-        `Destination: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
+        `Distance from cake: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
 
     if(!playedAudio1 && distance < 600){ playedAudio1 = true; playAudio(audio1); }
     if(!playedAudio2 && distance < 400){ playedAudio2 = true; playAudio(audio2); }
