@@ -9,61 +9,42 @@
 html,body,#map { height:100%; margin:0; padding:0; }
 
 #distanceBox {
-  position: fixed;
-  top: 10px;
-  left: 10px;
+  position: fixed; top:10px; left:10px;
   background: rgba(255,255,255,0.9);
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-family: sans-serif;
-  font-size: 16px;
-  z-index: 1500;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  padding: 8px 14px; border-radius: 10px;
+  font-family: sans-serif; font-size:16px;
+  z-index:1500;
+  box-shadow:0 2px 6px rgba(0,0,0,0.2);
 }
 
-#controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; }
+#controls { position: fixed; bottom:20px; left:50%; transform: translateX(-50%); z-index:1000; }
 
 #startBtn {
-  padding: 16px 32px; border: none; border-radius: 50px;
-  background: linear-gradient(135deg, #ff7b00, #ffb347);
-  color: white; font-size: 18px; font-weight: bold; font-family: 'Helvetica Neue', sans-serif;
-  cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  padding:16px 32px; border:none; border-radius:50px;
+  background: linear-gradient(135deg,#ff7b00,#ffb347);
+  color:white; font-size:18px; font-weight:bold; font-family:'Helvetica Neue',sans-serif;
+  cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease; animation: pulse 1.5s infinite;
 }
-#startBtn.stopped { animation: none; }
-#startBtn:active { transform: scale(0.95); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+#startBtn.stopped { animation:none; }
+#startBtn:active { transform: scale(0.95); box-shadow:0 2px 6px rgba(0,0,0,0.2); }
 
 @keyframes pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 123, 0, 0.7); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 123, 0, 0); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 123, 0, 0); }
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,123,0,0.7);}
+  70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255,123,0,0);}
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,123,0,0);}
 }
 
 #giftIcon {
-  position: fixed; top: 50%; left: 50%;
+  position: fixed; top:50%; left:50%;
   transform: translate(-50%,-50%);
-  font-size: 4rem; cursor: pointer;
-  display: none; z-index: 3000;
+  font-size:4rem; cursor:pointer;
+  display:none; z-index:3000;
   animation: bounce 1s infinite;
 }
-
 @keyframes bounce {
-  0%,100%{ transform: translate(-50%,-50%) scale(1); }
-  50%{ transform: translate(-50%,-60%) scale(1.2); }
-}
-
-#cakePopup {
-  position: fixed; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  z-index: 4000; display: none;
-  cursor: pointer;
-  animation: cakeBounce 1s infinite;
-}
-#cakePopup img { width: 150px; height: auto; }
-
-@keyframes cakeBounce {
-  0%,100%{ transform: translate(-50%,-50%) scale(1); }
-  50%{ transform: translate(-50%,-60%) scale(1.1); }
+  0%,100% { transform: translate(-50%,-50%) scale(1);}
+  50% { transform: translate(-50%,-60%) scale(1.2);}
 }
 </style>
 </head>
@@ -72,7 +53,6 @@ html,body,#map { height:100%; margin:0; padding:0; }
 <div id="distanceBox">Distance: -- m</div>
 <div id="controls"><button id="startBtn">Start</button></div>
 <div id="giftIcon">🎁</div>
-<div id="cakePopup"><img src="https://dorisz1.github.io/assets/happyMS.png" alt="Cake"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -85,9 +65,9 @@ const audioStart = 'https://Dorisz1.github.io/assets/start.mp3';
 const audioArrival = 'https://Dorisz1.github.io/assets/arrival.mp3';
 const birthdaySong = 'https://Dorisz1.github.io/assets/birthdaysong.mp3';
 const cakeAudio = 'https://dorisz1.github.io/assets/cake.mp3';
-const audio1 = 'https://dorisz1.github.io/assets/1.mp3';
-const audio2 = 'https://dorisz1.github.io/assets/2.mp3';
-const audio3 = 'https://dorisz1.github.io/assets/3.mp3';
+const audio1 = 'https://Dorisz1.github.io/assets/1.mp3';
+const audio2 = 'https://Dorisz1.github.io/assets/2.mp3';
+const audio3 = 'https://Dorisz1.github.io/assets/3.mp3';
 
 function playAudio(url){ const audio = new Audio(url); audio.play(); }
 
@@ -97,38 +77,44 @@ const destination = L.latLng(47.50139415500076,19.033242823704455);
 const destinationIcon = L.icon({ iconUrl:'https://cdn-icons-png.flaticon.com/512/11529/11529542.png', iconSize:[48,48], iconAnchor:[24,48], popupAnchor:[0,-48] });
 L.marker(destination, {icon:destinationIcon}).addTo(map).bindPopup("Gift destination");
 
+// Cake marker setup (hidden initially)
 const cakePoint = L.latLng(47.49902998929004,19.025941528354455);
+const cakeIcon = L.icon({ iconUrl:'https://dorisz1.github.io/assets/happyMS.png', iconSize:[64,64], iconAnchor:[32,64] });
+let cakeMarker = null;
 
 // --- Flags ---
-let carMarker, arrived=false, playedAudio1=false, playedAudio2=false, playedAudio3=false, cakeShown=false;
+let carMarker, arrived=false, playedAudio1=false, playedAudio2=false, playedAudio3=false;
 
 // --- Update Car ---
 function updateCar(latlng){
-    // Show car marker immediately at initial location
-    if(!carMarker){ 
-        carMarker = L.marker(latlng,{icon:carIcon}).addTo(map); 
+    if(!carMarker){
+        carMarker = L.marker(latlng,{icon:carIcon}).addTo(map);
         map.setView(latlng,16);
-    } else { carMarker.setLatLng(latlng); }
+    } else {
+        carMarker.setLatLng(latlng);
+    }
 
     map.setView(latlng,16);
 
     const distance = latlng.distanceTo(destination);
     const cakeDist = latlng.distanceTo(cakePoint);
 
-    document.getElementById('distanceBox').innerText = `Distance from gift: ${Math.round(distance)} m | Mike: ${Math.round(cakeDist)} m`;
+    document.getElementById('distanceBox').innerText = 
+        `Distance from gift: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
 
     if(!playedAudio1 && distance<400){ playedAudio1=true; playAudio(audio1); }
     if(!playedAudio2 && distance<300){ playedAudio2=true; playAudio(audio2); }
     if(!playedAudio3 && distance<200){ playedAudio3=true; playAudio(audio3); }
 
     if(!arrived && distance<60){ arrived=true; playAudio(audioArrival); }
-    if(distance<30){ document.getElementById('giftIcon').style.display='block'; }
 
-    // Show cake in the center if within 100 m
-    if(!cakeShown && cakeDist<100){
-        cakeShown=true;
-        document.getElementById('cakePopup').style.display='block';
+    // Show cake marker on map if within 100m
+    if(!cakeMarker && cakeDist<100){
+        cakeMarker = L.marker(cakePoint,{icon:cakeIcon}).addTo(map);
+        cakeMarker.on('click', ()=>playAudio(cakeAudio));
     }
+
+    if(distance<30){ document.getElementById('giftIcon').style.display='block'; }
 }
 
 // --- Start Button ---
@@ -145,10 +131,6 @@ document.getElementById('startBtn').onclick = function(){
 
 // --- Click handlers ---
 document.getElementById('giftIcon').onclick = ()=>playAudio(birthdaySong);
-document.getElementById('cakePopup').onclick = ()=>{
-    playAudio(cakeAudio);
-    document.getElementById('cakePopup').style.display='none';
-};
 </script>
 </body>
 </html>
