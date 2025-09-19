@@ -128,7 +128,7 @@ const destinationIcon = L.icon({
     iconAnchor: [24,48],
     popupAnchor: [0,-48]
 });
-L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Distance from gift");
+L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Gift destination");
 
 // --- Cake Marker ---
 const cakePoint = L.latLng(47.50075, 19.03148);
@@ -182,37 +182,31 @@ function updateCar(latlng){
     document.getElementById('distanceBox').innerText =
         `Destination: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
 
-    // Distance-based audio triggers
-    if(!playedAudio1 && distance < 600){
-        playedAudio1 = true;
-        playAudio(audio1);
-    }
-    if(!playedAudio2 && distance < 400){
-        playedAudio2 = true;
-        playAudio(audio2);
-    }
-    if(!playedAudio3 && distance < 200){
-        playedAudio3 = true;
-        playAudio(audio3);
-    }
+    if(!playedAudio1 && distance < 600){ playedAudio1 = true; playAudio(audio1); }
+    if(!playedAudio2 && distance < 400){ playedAudio2 = true; playAudio(audio2); }
+    if(!playedAudio3 && distance < 200){ playedAudio3 = true; playAudio(audio3); }
 
-    // Arrival audio
     if(!arrived && distance < 60){
         arrived = true;
         playAudio(audioArrival);
     }
 
-    // Gift icon
     if(distance < 30){
         document.getElementById('giftIcon').style.display='block';
     }
 
-    // Cake logic
+    // --- Cake logic ---
     if(!cakeActive && cakeDist < 100){
         cakeActive = true;
         cakeMarker.setIcon(cakeHappy);
-        cakeMarker._icon.classList.add('bouncing-cake');
-        cakeMarker.on('click', ()=>playAudio(cakeAudio));
+        // Wait until Leaflet has updated the DOM element for the marker
+        setTimeout(()=>{
+            if(cakeMarker._icon){
+                cakeMarker._icon.classList.add('bouncing-cake');
+                cakeMarker._icon.style.cursor = 'pointer';
+                cakeMarker.on('click', ()=>playAudio(cakeAudio));
+            }
+        },100);
     }
 }
 
