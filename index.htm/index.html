@@ -182,8 +182,8 @@ function updateCar(latlng){
     document.getElementById('distanceBox').innerText =
         `Distance from cake: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
 
-    if(!playedAudio1 && distance < 600){ playedAudio1 = true; playAudio(audio1); }
-    if(!playedAudio2 && distance < 400){ playedAudio2 = true; playAudio(audio2); }
+    if(!playedAudio1 && distance < 400){ playedAudio1 = true; playAudio(audio1); }
+    if(!playedAudio2 && distance < 300){ playedAudio2 = true; playAudio(audio2); }
     if(!playedAudio3 && distance < 200){ playedAudio3 = true; playAudio(audio3); }
 
     if(!arrived && distance < 60){
@@ -196,7 +196,7 @@ function updateCar(latlng){
     }
 
     // --- Cake logic ---
-    if(!cakeActive && cakeDist < 100){
+    if(!cakeActive && cakeDist < 600){
         cakeActive = true;
         cakeMarker.setIcon(cakeHappy);
         // Wait until Leaflet has updated the DOM element for the marker
