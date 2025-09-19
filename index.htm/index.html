@@ -84,7 +84,7 @@ html,body,#map {
   50% { transform: translate(-50%, -60%) scale(1.2); }
 }
 
-/* Bouncing cake animation */
+/* Bouncing animation for happy cake */
 .bouncing-cake {
   animation: cakeBounce 1s infinite;
 }
@@ -132,19 +132,17 @@ L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Destination
 
 // --- Cake Marker ---
 const cakePoint = L.latLng(47.50075, 19.03148);
-const cakeGrey = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/1998/1998614.png',
-    iconSize: [44,44],
-    iconAnchor: [22,44],
-    className: 'cake-icon'
+const cakeSad = L.icon({
+    iconUrl: 'https://dorisz1.github.io/assets/sadMS.png',
+    iconSize: [64,64],
+    iconAnchor: [32,64]
 });
-const cakeColor = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/1998/1998615.png',
-    iconSize: [44,44],
-    iconAnchor: [22,44],
-    className: 'cake-icon bouncing-cake'
+const cakeHappy = L.icon({
+    iconUrl: 'https://dorisz1.github.io/assets/happyMS.png',
+    iconSize: [64,64],
+    iconAnchor: [32,64]
 });
-let cakeMarker = L.marker(cakePoint,{icon:cakeGrey}).addTo(map).bindPopup("Cake");
+let cakeMarker = L.marker(cakePoint,{icon:cakeSad}).addTo(map).bindPopup("Cake");
 let cakeActive = false;
 
 // --- Audio ---
@@ -212,9 +210,9 @@ function updateCar(latlng){
     // Cake logic
     if(!cakeActive && cakeDist < 60){
         cakeActive = true;
-        cakeMarker.setIcon(cakeColor);
-        cakeMarker.on('click', ()=>playAudio(cakeAudio));
+        cakeMarker.setIcon(cakeHappy);
         cakeMarker._icon.classList.add('bouncing-cake');
+        cakeMarker.on('click', ()=>playAudio(cakeAudio));
     }
 }
 
