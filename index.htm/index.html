@@ -177,7 +177,7 @@ function updateCar(latlng){
     const cakeDist = latlng.distanceTo(cakePoint);
 
     document.getElementById('distanceBox').innerText =
-        `Destination: ${Math.round(distance)} m | Mike: ${Math.round(cakeDist)} m`;
+        `Distance from gift: ${Math.round(distance)} m | Mike: ${Math.round(cakeDist)} m`;
 
     if(!playedAudio1 && distance < 400){ playedAudio1 = true; playAudio(audio1); }
     if(!playedAudio2 && distance < 300){ playedAudio2 = true; playAudio(audio2); }
