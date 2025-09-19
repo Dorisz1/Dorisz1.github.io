@@ -12,7 +12,6 @@ html,body,#map {
   padding:0;
 }
 
-/* Distance top-left box */
 #distanceBox {
   position: fixed;
   top: 10px;
@@ -26,7 +25,6 @@ html,body,#map {
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-/* Controls container */
 #controls {
   position: fixed;
   bottom: 20px;
@@ -35,7 +33,6 @@ html,body,#map {
   z-index: 1000;
 }
 
-/* Start button styling */
 #startBtn {
   padding: 16px 32px;
   border: none;
@@ -66,7 +63,6 @@ html,body,#map {
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 123, 0, 0); }
 }
 
-/* Gift icon */
 #giftIcon {
   position: fixed;
   top: 50%;
@@ -84,7 +80,6 @@ html,body,#map {
   50% { transform: translate(-50%, -60%) scale(1.2); }
 }
 
-/* Bouncing animation for happy cake */
 .bouncing-cake {
   animation: cakeBounce 1s infinite;
 }
@@ -120,8 +115,6 @@ let carMarker = null;
 
 // --- Destination ---
 const destination = L.latLng(47.50139415500076, 19.033242823704455);
-
-// --- Destination Marker ---
 const destinationIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/11529/11529542.png',
     iconSize: [48,48],
@@ -130,7 +123,7 @@ const destinationIcon = L.icon({
 });
 L.marker(destination, {icon: destinationIcon}).addTo(map).bindPopup("Gift destination");
 
-// --- Cake Marker ---
+// --- Cake ---
 const cakePoint = L.latLng(47.49902998929004, 19.025941528354455);
 const cakeSad = L.icon({
     iconUrl: 'https://dorisz1.github.io/assets/sadMS.png',
@@ -142,7 +135,7 @@ const cakeHappy = L.icon({
     iconSize: [64,64],
     iconAnchor: [32,64]
 });
-let cakeMarker = L.marker(cakePoint,{icon:cakeSad}).addTo(map).bindPopup("Cake");
+let cakeMarker = null;
 let cakeActive = false;
 
 // --- Audio ---
@@ -173,14 +166,13 @@ function updateCar(latlng){
     } else {
         carMarker.setLatLng(latlng);
     }
-
     map.setView(latlng,16);
 
     const distance = latlng.distanceTo(destination);
-    const cakeDist = latlng.distanceTo(cakePoint);
+    const cakeDist = cakeMarker ? latlng.distanceTo(cakePoint) : 0;
 
     document.getElementById('distanceBox').innerText =
-        `Destination: ${Math.round(distance)} m | Cake: ${Math.round(cakeDist)} m`;
+        `Destination: ${Math.round(distance)} m | Cake: ${cakeMarker?Math.round(cakeDist):'--'} m`;
 
     if(!playedAudio1 && distance < 400){ playedAudio1 = true; playAudio(audio1); }
     if(!playedAudio2 && distance < 300){ playedAudio2 = true; playAudio(audio2); }
@@ -196,20 +188,16 @@ function updateCar(latlng){
     }
 
     // --- Cake logic ---
-    if(!cakeActive && cakeDist < 600){
+    if(cakeMarker && !cakeActive && cakeDist < 600){
         cakeActive = true;
         cakeMarker.setIcon(cakeHappy);
-
-        setTimeout(() => {
+        setTimeout(()=>{
             if(cakeMarker._icon){
                 cakeMarker._icon.classList.add('bouncing-cake');
                 cakeMarker._icon.style.cursor = 'pointer';
-                cakeMarker.on('click', (e) => {
-                    L.DomEvent.stopPropagation(e); 
-                    playAudio(cakeAudio);
-                });
+                cakeMarker.on('click', ()=>playAudio(cakeAudio));
             }
-        }, 100);
+        },100);
     }
 }
 
@@ -217,6 +205,11 @@ function updateCar(latlng){
 document.getElementById('startBtn').onclick = function(){
     playAudio(audioStart);
     this.classList.add('stopped');
+
+    // add cake marker now
+    if(!cakeMarker){
+        cakeMarker = L.marker(cakePoint,{icon:cakeSad}).addTo(map).bindPopup("Cake");
+    }
 
     if(navigator.geolocation){
         navigator.geolocation.watchPosition(pos=>{
