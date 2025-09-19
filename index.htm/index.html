@@ -124,8 +124,8 @@ function updateCar(latlng){
     if(!arrived && distance<60){ arrived=true; playAudio(audioArrival); }
     if(distance<30){ document.getElementById('giftIcon').style.display='block'; }
 
-    // Show cake in the center if within 600 m
-    if(!cakeShown && cakeDist<600){
+    // Show cake in the center if within 100 m
+    if(!cakeShown && cakeDist<100){
         cakeShown=true;
         document.getElementById('cakePopup').style.display='block';
     }
